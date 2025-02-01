@@ -14,6 +14,8 @@
 
 import { HttpClient } from '@actions/http-client';
 
+import { expandUniverseEndpoints } from '@google-github-actions/actions-utils';
+
 import { Logger } from '../logger';
 import { userAgent } from '../utils';
 
@@ -32,23 +34,24 @@ export interface AuthClient {
    * other Google Cloud tools) that instructs the tool how to perform identity
    * federation.
    */
-  createCredentialsFile(outputPath: string): Promise<string>;
+  createCredentialsFile(outputPath: string): Promise<string>; // eslint-disable-line no-unused-vars
 
   /**
    * signJWT signs a JWT using the auth provider.
    */
-  signJWT(claims: any): Promise<string>;
+  signJWT(claims: any): Promise<string>; // eslint-disable-line no-unused-vars
 }
 
 export interface ClientParameters {
   logger: Logger;
   universe: string;
-  child: string;
+  requestReason?: string;
 }
 
-export class Client {
+export abstract class Client {
   protected readonly _logger: Logger;
   protected readonly _httpClient: HttpClient;
+  private readonly _requestReason: string | undefined;
 
   protected readonly _endpoints = {
     iam: 'https://iam.{universe}/v1',
@@ -57,10 +60,9 @@ export class Client {
     sts: 'https://sts.{universe}/v1',
     www: 'https://www.{universe}',
   };
-  protected readonly _universe;
 
-  constructor(opts: ClientParameters) {
-    this._logger = opts.logger.withNamespace(opts.child);
+  constructor(child: string, opts: ClientParameters) {
+    this._logger = opts.logger.withNamespace(child);
 
     // Create the http client with our user agent.
     this._httpClient = new HttpClient(userAgent, undefined, {
@@ -71,26 +73,19 @@ export class Client {
       maxRetries: 3,
     });
 
-    // Expand universe to support TPC and custom endpoints.
-    this._universe = opts.universe;
-    for (const key of Object.keys(this._endpoints) as Array<keyof typeof this._endpoints>) {
-      this._endpoints[key] = this.expandEndpoint(key);
-    }
-    this._logger.debug(`Computed endpoints for universe ${this._universe}`, this._endpoints);
+    this._endpoints = expandUniverseEndpoints(this._endpoints, opts.universe);
+    this._requestReason = opts.requestReason;
   }
 
-  expandEndpoint(key: keyof typeof this._endpoints): string {
-    const envOverrideKey = `GHA_ENDPOINT_OVERRIDE_${key}`;
-    const envOverrideValue = process.env[envOverrideKey];
-    if (envOverrideValue && envOverrideValue !== '') {
-      this._logger.debug(
-        `Overriding API endpoint for ${key} because ${envOverrideKey} is set`,
-        envOverrideValue,
-      );
-      return envOverrideValue.replace(/\/+$/, '');
+  /**
+   * _headers returns any added headers to apply to HTTP API calls.
+   */
+  protected _headers(): Record<string, string> {
+    const headers: Record<string, string> = {};
+    if (this._requestReason) {
+      headers['X-Goog-Request-Reason'] = this._requestReason;
     }
-
-    return (this._endpoints[key] || '').replace(/{universe}/g, this._universe).replace(/\/+$/, '');
+    return headers;
   }
 }
 export { IAMCredentialsClient, IAMCredentialsClientParameters } from './iamcredentials';

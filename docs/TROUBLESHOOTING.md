@@ -6,10 +6,8 @@
     see exactly which step is failing. Ensure you are using the latest version
     of the GitHub Action.
 
-    > [!CAUTION]
-    >
-    > Enabling debug logging increases the chances of a secret
-    > being accidentially logged. While GitHub Actions will scrub secrets,
+    > **⚠️ WARNING!** Enabling debug logging increases the chances of a secret
+    > being accidentally logged. While GitHub Actions will scrub secrets,
     > please take extra caution when sharing these debug logs in publicly
     > accessible places like GitHub issues.
     >
@@ -46,7 +44,7 @@
 
     ```diff
     - projects/my-project/locations/global/workloadIdentityPools/my-pool/providers/my-provider
-    + projects/1234567890/locations/global/workloadIdentityPools/my-pool/providers/
+    + projects/1234567890/locations/global/workloadIdentityPools/my-pool/providers/my-provider
     ```
 
 1.  Ensure that you have the correct `permissions:` for the job in your
@@ -64,11 +62,9 @@
     GitHub OIDC token. You cannot grant permissions on an attribute unless you
     map that value from the incoming GitHub OIDC token.
 
-    > [!TIP]
-    >
-    > Use the [GitHub Actions OIDC Debugger][oidc-debugger] to print the list of
-    > token claims and compare them to your Attribute Mappings and Attribute
-    > Conditions.
+    > **ℹ️ TIP!** Use the [GitHub Actions OIDC Debugger][oidc-debugger] to print
+    > the list of token claims and compare them to your Attribute Mappings and
+    > Attribute Conditions.
 
 1.  Ensure you have the correct character casing and capitalization. GitHub does
     not distinguish between "foobar" and "FooBar", but Google Cloud does. Ensure
@@ -81,7 +77,7 @@
         token", it means admission into the Workload Identity Pool failed. Check
         your [**Attribute Conditions**][attribute-conditions].
 
-    -   If the error message inclues "Failed to generate OAuth 2.0 Access
+    -   If the error message includes "Failed to generate OAuth 2.0 Access
         Token", it means Service Account Impersonation failed. Check your
         [**Service Account Impersonation**][sa-impersonation] settings and
         ensure the principalSet is correct.
@@ -89,10 +85,8 @@
 1.  Enable `Admin Read`, `Data Read`, and `Data Write` [Audit Logging][cal] for
     Identity and Access Management (IAM) in your Google Cloud project.
 
-    > [!WARNING]
-    >
-    > This will increase log volume which may increase costs. You can disable
-    > this audit logging after you have debugged the issue.
+    > **⚠️ WARNING!** This will increase log volume which may increase costs.
+    > You can disable this audit logging after you have debugged the issue.
 
     Try to authenticate again, and then explore the logs for your Workload
     Identity Provider and Workload Identity Pool. Sometimes these error messages
@@ -238,9 +232,7 @@ cat credentials.json | jq -r tostring
 
 ## Organizational Policy Constraints
 
-> [!NOTE]
->
-> Your Google Cloud organization administrator controls these
+> **ℹ️ NOTE!** Your Google Cloud organization administrator controls these
 > policies. You must work with your internal IT department to resolve OrgPolicy
 > violations and constraints.
 

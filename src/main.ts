@@ -84,6 +84,7 @@ export async function run(logger: Logger) {
     const tokenFormat = getInput(`token_format`);
     const delegates = parseMultilineCSV(getInput(`delegates`));
     const universe = getInput(`universe`);
+    const requestReason = getInput(`request_reason`);
 
     // Ensure exactly one of workload_identity_provider and credentials_json was
     // provided.
@@ -113,6 +114,7 @@ export async function run(logger: Logger) {
       client = new WorkloadIdentityFederationClient({
         logger: logger,
         universe: universe,
+        requestReason: requestReason,
 
         githubOIDCToken: oidcToken,
         githubOIDCTokenRequestURL: oidcTokenRequestURL,
@@ -126,6 +128,7 @@ export async function run(logger: Logger) {
       client = new ServiceAccountKeyClient({
         logger: logger,
         universe: universe,
+        requestReason: requestReason,
 
         serviceAccountKey: credentialsJSON,
       });
@@ -199,7 +202,7 @@ export async function run(logger: Logger) {
     // Set the project ID environment variables to the computed values.
     if (!projectID) {
       logger.info(
-        `⚠️ Failed to a project ID from the given inputs. Neither the ` +
+        `⚠️ Failed to compute a project ID from the given inputs. Neither the ` +
           `"project_id" output nor any environment variables will be ` +
           `exported. If you require these values in other steps, specify the ` +
           `"project_id" input directly.`,
